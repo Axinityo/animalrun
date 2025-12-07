@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>動物大賽跑</title>
+    <title>動物大賽跑 - 完美平衡版</title>
     <style>
         /* --- CSS 變數系統 (主題配色) --- */
         :root {
@@ -146,21 +146,20 @@
         .odds-text { color: #dc3545; font-weight: bold; font-size:16px; } 
         .fav-weather { font-size: 11px; color: var(--text-muted); margin-top: 2px; background: var(--bg-control); border-radius: 4px; padding: 2px;}
 
-        /* --- 控制區 & 按鈕顏色強制修正 --- */
+        /* --- 控制區 --- */
         .controls { text-align: center; margin-top: 15px; background: var(--bg-control); padding: 15px; border-radius: 8px; }
         .bet-input-group { margin-bottom: 10px; display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: wrap; }
         
         button { padding: 8px 10px; font-size: 14px; cursor: pointer; border: none; border-radius: 5px; touch-action: manipulation; font-weight: bold; transition: 0.2s; }
         button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        /* 強制按鈕顏色，不隨主題改變，確保可讀性 */
         .btn-minus { background-color: #dc3545 !important; color: #ffffff !important; }
         .btn-minus:hover { background-color: #bb2d3b !important; }
 
         .btn-plus { background-color: #28a745 !important; color: #ffffff !important; }
         .btn-plus:hover { background-color: #218838 !important; }
 
-        .btn-plus-lg { background-color: #198754 !important; color: #ffffff !important; } /* 深綠 */
+        .btn-plus-lg { background-color: #198754 !important; color: #ffffff !important; } 
         .btn-plus-lg:hover { background-color: #157347 !important; }
 
         .btn-reset { background-color: #6c757d !important; color: #ffffff !important; }
@@ -174,7 +173,6 @@
         
         .instant-end-btn { background-color: #6f42c1 !important; color: #ffffff !important; width: 100%; margin-top: 10px; font-weight: bold; display: none; animation: popIn 0.3s; }
 
-        /* 危險區域 */
         .danger-zone { margin-top: 30px; padding: 15px; border: 2px dashed #dc3545; border-radius: 8px; text-align: center; background: var(--danger-zone-bg); }
         .hard-reset-btn { background-color: #dc3545 !important; color: #ffffff !important; font-weight: bold; padding: 10px 20px; }
         .hard-reset-btn:hover { background-color: #c82333 !important; }
@@ -209,7 +207,7 @@
 
 <div class="container">
     <button id="theme-toggle-btn" onclick="toggleTheme()">🌓 切換模式</button>
-    <h1>🐎 動物大賽跑 - 一無所有或贏下所有 🏆</h1>
+    <h1>🐎 動物大賽跑 - 完美平衡版 🏆</h1>
     
     <div id="bonus-banner">🎉 主委加碼 超級加倍！本場獲勝獎金 x2 🎉</div>
 
@@ -241,31 +239,27 @@
         <div class="betting-area" id="betting-area"></div>
 
         <div class="controls">
-            <div class="bet-control-container">
-                <div class="bet-row">
-                    <button class="btn-minus" onclick="adjustBet(-50000)">-50k</button>
-                    <button class="btn-minus" onclick="adjustBet(-10000)">-10k</button>
-                    <button class="btn-minus" onclick="adjustBet(-1000)">-1k</button>
-                    <button class="btn-minus" onclick="adjustBet(-500)">-500</button>
-                    <button class="btn-minus" onclick="adjustBet(-100)">-100</button>
-                </div>
-                
-                <div class="bet-row" style="align-items: center;">
-                    <button class="btn-reset" onclick="resetBet()">重置</button>
-                    <input type="number" id="bet-amount" placeholder="賭金" min="100" step="100" value="100" readonly>
-                    <button class="btn-allin" onclick="setAllIn()">ALL IN</button>
-                </div>
-
-                <div class="bet-row">
-                    <button class="btn-plus" onclick="adjustBet(100)">+100</button>
-                    <button class="btn-plus" onclick="adjustBet(500)">+500</button>
-                    <button class="btn-plus" onclick="adjustBet(1000)">+1k</button>
-                    <button class="btn-plus-lg" onclick="adjustBet(10000)">+10k</button>
-                    <button class="btn-plus-lg" onclick="adjustBet(50000)">+50k</button>
-                </div>
+            <div class="bet-input-group">
+                <button class="btn-minus" onclick="adjustBet(-50000)">-50k</button>
+                <button class="btn-minus" onclick="adjustBet(-10000)">-10k</button>
+                <button class="btn-minus" onclick="adjustBet(-1000)">-1k</button>
+                <button class="btn-minus" onclick="adjustBet(-500)">-500</button>
+                <button class="btn-minus" onclick="adjustBet(-100)">-100</button>
             </div>
-            
+            <div class="bet-input-group">
+                <button class="btn-reset" onclick="resetBet()">重置</button>
+                <input type="number" id="bet-amount" placeholder="賭金" min="100" step="100" value="100" readonly>
+                <button class="btn-allin" onclick="setAllIn()">ALL IN</button>
+            </div>
+            <div class="bet-input-group">
+                <button class="btn-plus" onclick="adjustBet(100)">+100</button>
+                <button class="btn-plus" onclick="adjustBet(500)">+500</button>
+                <button class="btn-plus" onclick="adjustBet(1000)">+1k</button>
+                <button class="btn-plus-lg" onclick="adjustBet(10000)">+10k</button>
+                <button class="btn-plus-lg" onclick="adjustBet(50000)">+50k</button>
+            </div>
             <span id="min-bet-display" style="font-size:12px; color:var(--text-muted); display:block; margin-top:5px;">最低下注: $100</span>
+            <br>
             <button id="start-btn" class="start-btn" onclick="startGame()">🏁 開始比賽</button>
             <button id="instant-end-btn" class="instant-end-btn" onclick="instantSettle()">⚡ 立即結算</button>
         </div>
@@ -336,7 +330,7 @@ const ANIMAL_DATA = [
 ];
 
 const VENUES = [
-    { name: "新手草地", length: 2000, minFunds: 0, eventProb: 0.005, desc: "無最低限制" },
+    { name: "新手草地", length: 2000, minFunds: 0, eventProb: 0.005, desc: "免費" },
     { name: "進階泥地", length: 4000, minFunds: 2000, eventProb: 0.010, desc: "$2000+" },
     { name: "專業沙地", length: 6000, minFunds: 10000, eventProb: 0.015, desc: "$10000+" },
     { name: "大師山路", length: 8000, minFunds: 50000, eventProb: 0.020, desc: "$50000+" },
@@ -468,7 +462,8 @@ class Animal {
         this.icon = data.icon;
         this.favWeather = data.fav;
         
-        this.odds = savedOdds ? savedOdds : (Math.random() * (10 - 1.1) + 1.1).toFixed(2);
+        // 如果有存檔，使用存檔賠率；否則在 resetMatch 時由 generateDistinctOdds 生成後傳入
+        this.odds = savedOdds ? savedOdds : 1.1; 
         this.recalcSpeed(venueLength, weather);
         
         this.position = 0; 
@@ -542,6 +537,29 @@ class Animal {
 }
 
 // --- 5. 遊戲流程 ---
+
+// --- 階梯式賠率生成算法 ---
+function generateDistinctOdds() {
+    // 1. 定義階梯基底 (總和 ~36)
+    let baseOdds = [1.2, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+    
+    // 2. 加上隨機浮動 (0.0 ~ 0.5)
+    let odds = baseOdds.map(o => o + Math.random() * 0.5);
+    
+    // 3. 確保總和 <= 40
+    let sum = odds.reduce((a, b) => a + b, 0);
+    if (sum > 40) {
+        // 如果超過，等比例縮小 (保留最小 1.1)
+        let scale = 38 / sum; 
+        odds = odds.map(o => Math.max(1.1, o * scale));
+    }
+    
+    // 4. 格式化為小數點 2 位
+    odds = odds.map(o => parseFloat(o.toFixed(2)));
+    
+    // 5. 洗牌 (讓誰是熱門不固定)
+    return odds.sort(() => Math.random() - 0.5);
+}
 
 function startGame() {
     let amount = parseInt(document.getElementById('bet-amount').value);
@@ -912,9 +930,12 @@ function resetMatch(isForceNew = false) {
     let trackHTML = "";
     let venueLen = VENUES[currentVenueIndex].length;
     
+    // 生成平衡後的賠率
+    let distinctOdds = generateDistinctOdds();
+
     for(let i=0; i<8; i++) {
         let data = ANIMAL_DATA[i];
-        let ani = new Animal(i, data, venueLen, currentWeather);
+        let ani = new Animal(i, data, venueLen, currentWeather, distinctOdds[i]);
         animals.push(ani);
         let favInfo = ani.isFavWeather ? `<div class="fav-weather" style="color:red; font-weight:bold;">🔥 天氣優勢！</div>` : `<div class="fav-weather">喜好: ${ani.favWeather}</div>`;
         bettingHTML += `<div class="bet-card" id="bet-${i}" onclick="handleAnimalClick(${i})"><div style="font-size:20px">${ani.icon} ${ani.name}</div>${favInfo}<div class="odds-text" id="odds-display-${i}">x${ani.odds}</div></div>`;
@@ -978,9 +999,24 @@ function loadGameData() {
     funds = parseInt(localStorage.getItem('raceGameFunds')) || 1000;
     playerInventory = JSON.parse(localStorage.getItem('raceGameInventory')) || {};
     let stats = JSON.parse(localStorage.getItem('raceGameStats'));
-    if (stats) playerStats = stats;
+    if (stats) {
+        playerStats = stats;
+        // 防呆補齊新屬性
+        if(!playerStats.venueWins) playerStats.venueWins = [0,0,0,0,0];
+        if(!playerStats.totalItemsBought) playerStats.totalItemsBought = 0;
+        if(!playerStats.maxFundsReached) playerStats.maxFundsReached = 0;
+        if(!playerStats.secondPlaceCount) playerStats.secondPlaceCount = 0;
+        if(!playerStats.minBetWins) playerStats.minBetWins = 0;
+        if(!playerStats.legendaryWins) playerStats.legendaryWins = 0;
+        if(!playerStats.turtleRainWins) playerStats.turtleRainWins = 0;
+        if(!playerStats.cheetahWindWins) playerStats.cheetahWindWins = 0;
+        if(!playerStats.miracleWins) playerStats.miracleWins = 0;
+        if(!playerStats.upsetLosses) playerStats.upsetLosses = 0;
+    }
+    
     let savedRelief = localStorage.getItem('raceGameReliefTime');
     if(savedRelief && savedRelief !== "null") reliefNextTime = parseInt(savedRelief);
+    
     let savedAcc = localStorage.getItem('raceGameReliefAccumulated');
     if(savedAcc) reliefAccumulated = parseInt(savedAcc);
 }
