@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>動物大賽跑</title>
+    <title>動物大賽跑 by Axin</title>
     <style>
         /* --- CSS 變數系統 (主題配色) --- */
         :root {
@@ -146,20 +146,21 @@
         .odds-text { color: #dc3545; font-weight: bold; font-size:16px; } 
         .fav-weather { font-size: 11px; color: var(--text-muted); margin-top: 2px; background: var(--bg-control); border-radius: 4px; padding: 2px;}
 
-        /* --- 控制區 --- */
+        /* --- 控制區 & 按鈕顏色強制修正 --- */
         .controls { text-align: center; margin-top: 15px; background: var(--bg-control); padding: 15px; border-radius: 8px; }
         .bet-input-group { margin-bottom: 10px; display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: wrap; }
         
         button { padding: 8px 10px; font-size: 14px; cursor: pointer; border: none; border-radius: 5px; touch-action: manipulation; font-weight: bold; transition: 0.2s; }
         button:disabled { opacity: 0.6; cursor: not-allowed; }
 
+        /* 強制按鈕顏色，不隨主題改變，確保可讀性 */
         .btn-minus { background-color: #dc3545 !important; color: #ffffff !important; }
         .btn-minus:hover { background-color: #bb2d3b !important; }
 
         .btn-plus { background-color: #28a745 !important; color: #ffffff !important; }
         .btn-plus:hover { background-color: #218838 !important; }
 
-        .btn-plus-lg { background-color: #198754 !important; color: #ffffff !important; } 
+        .btn-plus-lg { background-color: #198754 !important; color: #ffffff !important; } /* 深綠 */
         .btn-plus-lg:hover { background-color: #157347 !important; }
 
         .btn-reset { background-color: #6c757d !important; color: #ffffff !important; }
@@ -173,6 +174,7 @@
         
         .instant-end-btn { background-color: #6f42c1 !important; color: #ffffff !important; width: 100%; margin-top: 10px; font-weight: bold; display: none; animation: popIn 0.3s; }
 
+        /* 危險區域 */
         .danger-zone { margin-top: 30px; padding: 15px; border: 2px dashed #dc3545; border-radius: 8px; text-align: center; background: var(--danger-zone-bg); }
         .hard-reset-btn { background-color: #dc3545 !important; color: #ffffff !important; font-weight: bold; padding: 10px 20px; }
         .hard-reset-btn:hover { background-color: #c82333 !important; }
@@ -330,7 +332,7 @@ const ANIMAL_DATA = [
 ];
 
 const VENUES = [
-    { name: "新手草地", length: 2000, minFunds: 0, eventProb: 0.005, desc: "無入場門檻" },
+    { name: "新手草地", length: 2000, minFunds: 0, eventProb: 0.005, desc: "免費" },
     { name: "進階泥地", length: 4000, minFunds: 2000, eventProb: 0.010, desc: "$2000+" },
     { name: "專業沙地", length: 6000, minFunds: 10000, eventProb: 0.015, desc: "$10000+" },
     { name: "大師山路", length: 8000, minFunds: 50000, eventProb: 0.020, desc: "$50000+" },
@@ -540,24 +542,14 @@ class Animal {
 
 // --- 階梯式賠率生成算法 ---
 function generateDistinctOdds() {
-    // 1. 定義階梯基底 (總和 ~36)
     let baseOdds = [1.2, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
-    
-    // 2. 加上隨機浮動 (0.0 ~ 0.5)
     let odds = baseOdds.map(o => o + Math.random() * 0.5);
-    
-    // 3. 確保總和 <= 40
     let sum = odds.reduce((a, b) => a + b, 0);
     if (sum > 40) {
-        // 如果超過，等比例縮小 (保留最小 1.1)
         let scale = 38 / sum; 
         odds = odds.map(o => Math.max(1.1, o * scale));
     }
-    
-    // 4. 格式化為小數點 2 位
     odds = odds.map(o => parseFloat(o.toFixed(2)));
-    
-    // 5. 洗牌 (讓誰是熱門不固定)
     return odds.sort(() => Math.random() - 0.5);
 }
 
@@ -959,8 +951,22 @@ function selectVenue(index) {
     currentVenueIndex = index;
     let venueData = VENUES[index];
     currentMinBet = venueData.minFunds > 0 ? venueData.minFunds : 100;
+    
     let input = document.getElementById('bet-amount');
-    if(parseInt(input.value) < currentMinBet) input.value = currentMinBet;
+    let currentVal = parseInt(input.value) || 0;
+
+    // 資金校正邏輯 (修復 Bug)
+    if (currentVal < currentMinBet) {
+        currentVal = currentMinBet;
+    }
+    // 如果當前下注金額超過玩家持有的資金，強制降為玩家資金 (取100倍數)
+    if (currentVal > funds) {
+        currentVal = Math.floor(funds / 100) * 100;
+        if (currentVal < currentMinBet) currentVal = currentMinBet;
+    }
+
+    input.value = currentVal;
+    
     document.getElementById('min-bet-display').innerText = `最低下注: $${currentMinBet}`;
     renderVenues();
     if(animals.length > 0) { animals.forEach(ani => ani.recalcSpeed(venueData.length, currentWeather)); saveMatchState(); }
@@ -1149,4 +1155,3 @@ function devModifyOdds(index) { let ani = animals[index]; let newOdds = prompt(`
 
 </body>
 </html>
-
