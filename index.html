@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>動物大賽跑</title>
+    <style>
+        /* --- 基礎設定 --- */
+        body { font-family: 'Microsoft JhengHei', sans-serif; background-color: #f0f0f0; padding: 10px; margin: 0; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { margin: 10px 0; font-size: 24px; text-align: center; }
+        h3 { margin: 10px 0; font-size: 18px; border-left: 4px solid #007bff; padding-left: 10px; }
+
+        /* --- 資訊面板 --- */
+        .info-panel { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 15px; padding: 10px; background: #e0e7ff; border-radius: 8px; font-weight: bold; border: 2px solid #4f46e5; align-items: center; }
+        .funds-group { display: flex; flex-direction: column; }
+        .relief-info { color: #d97706; font-size: 12px; margin-top: 5px; }
+        
+        /* --- 場地選擇 (RWD 優化) --- */
+        .venue-selection { 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 8px; 
+            margin-bottom: 20px; 
+        }
+        .venue-card { background: #fff; border: 2px solid #ccc; padding: 8px; border-radius: 8px; text-align: center; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; min-width: 0; }
+        .venue-card:hover { transform: translateY(-3px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .venue-card.active { border-color: #f59e0b; background: #fffbeb; box-shadow: 0 0 0 2px #f59e0b; }
+        .venue-card.locked { background: #e5e5e5; color: #888; cursor: not-allowed; border-color: #999; }
+        .venue-name { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .venue-fee { font-size: 11px; color: #666; margin-top: 2px; }
+        .chaos-level { font-size: 10px; color: #dc3545; font-weight: bold; margin-top: 2px; }
+
+        /* --- 賽道 --- */
+        .track-area { margin: 15px 0; border: 2px solid #333; padding: 5px; background: #555; border-radius: 5px; }
+        .lane { margin-bottom: 8px; background: #333; padding: 2px; border-radius: 4px; position: relative; height: 36px; }
+        .lane-name { color: white; position: absolute; left: 5px; top: 50%; transform: translateY(-50%); z-index: 2; font-size: 12px; text-shadow: 1px 1px 2px black; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); width: 0%; border-radius: 4px; transition: width 0.05s linear; position: relative; }
+        .animal-icon { position: absolute; right: -12px; top: -6px; font-size: 22px; transition: right 0.05s linear; }
+        .status-text { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); color: yellow; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px black;}
+
+        /* --- 下注區 (RWD 優化) --- */
+        .betting-area { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
+        .bet-card { border: 1px solid #ccc; padding: 8px; border-radius: 5px; text-align: center; cursor: pointer; transition: 0.3s; position: relative; }
+        .bet-card.selected { background: #d1fae5; border-color: #10b981; border-width: 2px; }
+        .bet-card.disabled { opacity: 0.6; cursor: not-allowed; }
+        .odds-text { color:red; font-weight:bold; font-size:16px; }
+        .fav-weather { font-size: 11px; color: #555; margin-top: 2px; background: #eee; border-radius: 4px; padding: 2px;}
+
+        /* --- 控制區 --- */
+        .controls { text-align: center; margin-top: 15px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
+        .bet-input-group { margin-bottom: 10px; display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: wrap; }
+        button { padding: 8px 12px; font-size: 14px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; touch-action: manipulation; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        
+        .quick-btn { background: #17a2b8; font-size: 12px; padding: 8px 10px; min-width: 50px; }
+        .quick-btn.minus { background: #dc3545; }
+        .reset-btn { background: #6c757d; }
+        
+        input[type="number"] { padding: 8px; font-size: 16px; width: 100px; text-align: center; border: 2px solid #ddd; border-radius: 4px; }
+        .min-bet-hint { display: block; font-size: 12px; color: #666; margin-top: 5px; }
+
+        .log-area { height: 120px; overflow-y: auto; background: #222; color: #0f0; padding: 8px; margin-top: 15px; font-family: monospace; border-radius: 5px; font-size: 11px; }
+
+        /* --- 開發者模式樣式 --- */
+        #dev-trigger-btn { margin-top: 20px; background: #333; color: #555; font-size: 10px; padding: 5px; border-radius: 3px; float: right; }
+        #dev-panel { display: none; background: #2c3e50; color: white; padding: 15px; border-radius: 8px; margin-top: 20px; border: 2px solid #e74c3c; }
+        #dev-panel h4 { margin-top: 0; color: #e74c3c; }
+        .dev-controls { display: flex; gap: 5px; flex-wrap: wrap; }
+        .dev-btn { background: #e67e22; font-size: 12px; }
+        .dev-btn.danger { background: #c0392b; }
+        .dev-active-border { border: 2px dashed #e74c3c !important; } /* 下注卡在開發者模式下的特效 */
+
+        /* --- 響應式設計 (Mobile) --- */
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .venue-selection { 
+                grid-template-columns: repeat(5, 200px); /* 強制寬度 */
+                overflow-x: auto; /* 橫向捲動 */
+                padding-bottom: 5px;
+                display: flex; /* 改用 Flex 以支援滑動 */
+            }
+            .venue-card { flex: 0 0 100px; } /* 固定卡片寬度 */
+            
+            .betting-area { grid-template-columns: repeat(2, 1fr); } /* 手機改為2列 */
+            
+            .bet-input-group { gap: 5px; }
+            input[type="number"] { width: 80px; }
+            
+            #start-btn { width: 100% !important; margin-top: 10px; padding: 12px; font-size: 18px; }
+            
+            .info-panel { flex-direction: column; align-items: flex-start; gap: 5px; }
+            .weather-info { width: 100%; text-align: right; border-top: 1px solid #ccc; padding-top: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📱 動物大賽跑 📱</h1>
+    
+    <div class="info-panel">
+        <div class="funds-group">
+            <div>💰 資金: $<span id="funds">1000</span></div>
+            <div id="relief-status" class="relief-info" style="display:none;">
+                救濟: <span id="relief-count">0</span>/10 次 (<span id="timer-display"></span>)
+            </div>
+        </div>
+        <div class="weather-info" id="weather-display">☀️ 天氣: 載入中...</div>
+    </div>
+
+    <h3>1. 選擇場地</h3>
+    <div class="venue-selection" id="venue-list"></div>
+
+    <h3>2. 選擇選手</h3>
+    <div class="betting-area" id="betting-area"></div>
+
+    <div class="controls">
+        <div class="bet-input-group">
+            <button class="reset-btn" onclick="resetBet()">重置</button>
+            <button class="quick-btn minus" onclick="adjustBet(-500)">-500</button>
+            <button class="quick-btn minus" onclick="adjustBet(-100)">-100</button>
+            
+            <input type="number" id="bet-amount" placeholder="賭金" min="100" step="100" value="100" readonly>
+            
+            <button class="quick-btn" onclick="adjustBet(100)">+100</button>
+            <button class="quick-btn" onclick="adjustBet(500)">+500</button>
+        </div>
+        <span class="min-bet-hint" id="min-bet-display">最低下注: $100</span>
+        <button id="start-btn" onclick="startGame()" style="width: 200px; font-size: 18px; font-weight: bold;">🏁 開始比賽</button>
+    </div>
+
+    <div class="track-area" id="track-area"></div>
+
+    <div class="log-area" id="game-log">
+        <div>系統：已啟用「防刷局」機制。重新整理網頁不會改變賠率與天氣。</div>
+    </div>
+
+    <button id="dev-trigger-btn" onclick="toggleDevPanel()">🛠️ 開發者選項</button>
+    <div id="dev-panel">
+        <h4>🔧 開發者控制台</h4>
+        <div class="dev-controls">
+            <button class="dev-btn" onclick="devAddFunds()">💰 +1000 資金</button>
+            <button class="dev-btn danger" onclick="devResetMatch()">🔄 強制重置比賽</button>
+            <button class="dev-btn" onclick="devSetWeather('晴天')">☀️ 設為晴天</button>
+            <button class="dev-btn" onclick="devSetWeather('雨天')">🌧️ 設為雨天</button>
+            <button class="dev-btn" onclick="devSetWeather('大風')">💨 設為大風</button>
+            <button class="dev-btn danger" onclick="exitDevMode()">🚪 退出開發者模式</button>
+        </div>
+        <div style="font-size:12px; margin-top:10px; color:#ccc;">
+            * 在開發者模式下，點擊上方的「動物卡片」可直接修改該動物賠率。
+        </div>
+    </div>
+</div>
+
+<script>
+// --- 1. 遊戲資料 ---
+const ANIMAL_DATA = [
+    { name: "閃電兔", icon: "🐇", fav: "晴天" },
+    { name: "暴風馬", icon: "🐎", fav: "晴天" },
+    { name: "慢吞龜", icon: "🐢", fav: "雨天" },
+    { name: "衝鋒豹", icon: "🐆", fav: "大風" },
+    { name: "懶惰貓", icon: "🐈", fav: "熱浪" },
+    { name: "暴力熊", icon: "🐻", fav: "雨天" },
+    { name: "靈活猴", icon: "🐒", fav: "熱浪" },
+    { name: "坦克豬", icon: "🐖", fav: "大風" }
+];
+
+const VENUES = [
+    { name: "新手草地", length: 2000, minFunds: 0, eventProb: 0.005, desc: "免費" },
+    { name: "進階泥地", length: 4000, minFunds: 500, eventProb: 0.010, desc: "$500+" },
+    { name: "專業沙地", length: 6000, minFunds: 1500, eventProb: 0.015, desc: "$1500+" },
+    { name: "大師山路", length: 8000, minFunds: 3000, eventProb: 0.020, desc: "$3000+" },
+    { name: "傳奇海岸", length: 12000, minFunds: 5000, eventProb: 0.025, desc: "$5000+" }
+];
+
+const WEATHERS = [
+    { name: "晴天", effect: "normal" },
+    { name: "雨天", effect: "slippery" }, 
+    { name: "大風", effect: "resistance" },
+    { name: "熱浪", effect: "tired" }
+];
+
+const EVENTS = [
+    { text: "停下來吃草 🌿", type: "stop", val: 1500 },
+    { text: "加速衝刺！💨", type: "speed", val: 1.5 },
+    { text: "被石頭絆倒 🪨", type: "stop", val: 1200 },
+    { text: "滑了一跤 🍌", type: "progress", val: 50 },
+    { text: "逆風減速 🌬️", type: "speed", val: 0.7 },
+    { text: "鞋帶鬆了 👟", type: "stop", val: 1000 },
+    { text: "被對手推擠 😤", type: "stop", val: 800 },
+    { text: "喝了能量飲料 🥤", type: "speed", val: 1.8 },
+    { text: "觀眾歡呼 🎉", type: "speed", val: 1.3 },
+    { text: "肚子痛 🚽", type: "stop", val: 2500 },
+    { text: "迷路了... 🗺️", type: "progress", val: -50 },
+    { text: "腳抽筋 😫", type: "speed", val: 0.4 },
+    { text: "撿到噴射背包！🚀", type: "speed", val: 3.0 },
+    { text: "搭上了計程車 🚕", type: "speed", val: 2.5 },
+    { text: "發現秘密捷徑 🕳️", type: "progress", val: 300 },
+    { text: "被UFO推了一把 🛸", type: "speed", val: 3.5 },
+    { text: "掉進整人陷阱 🕳️", type: "stop", val: 4000 },
+    { text: "開啟狂暴模式 ⚡", type: "speed", val: 2.2 }
+];
+
+// --- 2. 變數 ---
+let funds = 1000;
+let currentVenueIndex = 0;
+let currentMinBet = 100; 
+let currentWeather = null;
+let animals = [];
+let selectedAnimalIndex = -1;
+let isRacing = false;
+let raceInterval = null;
+let reliefNextTime = null; 
+let reliefCount = 0;
+let isDevMode = false; // 開發者模式旗標
+
+window.onload = function() {
+    loadFundsData();
+    // 嘗試載入未完成的比賽狀態
+    let hasSavedMatch = loadMatchState();
+    
+    // 如果沒有存檔，才進行初始化
+    if (!hasSavedMatch) {
+        selectVenue(0); 
+        resetMatch(true); // true 表示生成新數據
+    } else {
+        log("讀取到未完成的賽事資料，已恢復天氣與賠率。");
+    }
+    
+    setInterval(checkReliefSystem, 1000); 
+};
+
+// --- 3. Class (支援存檔恢復) ---
+class Animal {
+    // 建構子新增 savedOdds 參數
+    constructor(id, data, venueLength, weather, savedOdds = null) {
+        this.id = id;
+        this.name = data.name;
+        this.icon = data.icon;
+        this.favWeather = data.fav;
+        
+        if (savedOdds) {
+            this.odds = savedOdds; // 使用存檔賠率
+        } else {
+            this.odds = (Math.random() * (10 - 1.1) + 1.1).toFixed(2); // 生成新賠率
+        }
+        
+        // 重新計算速度 (確保邏輯一致)
+        this.recalcSpeed(venueLength, weather);
+
+        this.position = 0; 
+        this.status = ""; 
+        this.finished = false;
+        this.finishOrder = 0;
+        this.speedBoostTimer = null;
+    }
+
+    recalcSpeed(venueLength, weather) {
+        const targetFrames = 600; 
+        const avgSpeed = venueLength / targetFrames;
+        const minOdds = 1.1;
+        const maxOdds = 10.0;
+        
+        // 速度計算
+        let oddsRatio = (this.odds - minOdds) / (maxOdds - minOdds);
+        let speedFactor = 1.25 - (oddsRatio * 0.5); 
+        
+        // 為了讓 Dev 模式修改賠率時速度能即時反應，我們稍微簡化隨機因子
+        // 在恢復模式下，我們無法完全還原當時的隨機浮動，除非也存起來
+        // 這裡我們取一個固定的小隨機，避免太過死板
+        speedFactor += (Math.random() * 0.05 - 0.025);
+
+        this.baseSpeed = avgSpeed * speedFactor;
+
+        this.isFavWeather = (weather.name === this.favWeather);
+        if (this.isFavWeather) {
+            this.baseSpeed *= 1.05; 
+        }
+        this.currentSpeed = this.baseSpeed;
+    }
+
+    update(venueLength, weather, eventProb) {
+        if (this.finished) return;
+
+        let weatherMod = 1;
+        if (weather.name === "雨天" && Math.random() < 0.01) this.triggerEvent({text:"打滑", type:"stop", val:500});
+        if (weather.name === "大風") weatherMod = 0.9;
+        
+        if (Math.random() < eventProb) {
+            let evt = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+            this.triggerEvent(evt);
+        }
+
+        this.position += this.currentSpeed * weatherMod;
+        
+        if (this.position >= venueLength) {
+            this.position = venueLength;
+            this.finished = true;
+        }
+    }
+
+    triggerEvent(evt) {
+        log(`${this.name} ${evt.text}`);
+        this.status = evt.text.split(" ")[0];
+        setTimeout(() => { this.status = ""; }, 1500);
+
+        if (evt.type === "speed") {
+            if(this.speedBoostTimer) {
+                clearTimeout(this.speedBoostTimer);
+                this.currentSpeed = this.baseSpeed;
+            }
+            this.currentSpeed = this.baseSpeed * evt.val;
+            this.speedBoostTimer = setTimeout(() => { 
+                this.currentSpeed = this.baseSpeed; 
+                this.speedBoostTimer = null;
+            }, 2000);
+        } else if (evt.type === "stop") {
+            this.currentSpeed = 0;
+            setTimeout(() => { this.currentSpeed = this.baseSpeed; }, evt.val);
+        } else if (evt.type === "progress") {
+            this.position += evt.val;
+        }
+    }
+}
+
+// --- 4. 存檔與防刷局機制 ---
+
+function saveMatchState() {
+    // 只儲存關鍵資料：天氣、每隻動物的賠率、當前場地
+    let state = {
+        weatherIdx: WEATHERS.findIndex(w => w.name === currentWeather.name),
+        venueIdx: currentVenueIndex,
+        animalOdds: animals.map(a => a.odds)
+    };
+    localStorage.setItem('raceGameMatchState', JSON.stringify(state));
+}
+
+function loadMatchState() {
+    let saved = localStorage.getItem('raceGameMatchState');
+    if (!saved) return false;
+
+    try {
+        let state = JSON.parse(saved);
+        
+        // 恢復場地
+        selectVenue(state.venueIdx);
+        
+        // 恢復天氣
+        currentWeather = WEATHERS[state.weatherIdx];
+        document.getElementById('weather-display').innerText = `${currentWeather.name === '晴天' ? '☀️' : currentWeather.name === '雨天' ? '🌧️' : '💨'} 天氣: ${currentWeather.name}`;
+        
+        // 恢復動物與賠率
+        animals = [];
+        let venueLen = VENUES[currentVenueIndex].length;
+        
+        // 重繪 UI
+        let bettingHTML = "";
+        let trackHTML = "";
+
+        for(let i=0; i<8; i++) {
+            let data = ANIMAL_DATA[i];
+            let savedOdd = state.animalOdds[i]; // 取出存檔賠率
+            let ani = new Animal(i, data, venueLen, currentWeather, savedOdd);
+            animals.push(ani);
+
+            let favInfo = ani.isFavWeather ? 
+                `<div class="fav-weather" style="color:red; font-weight:bold;">🔥 天氣優勢！</div>` : 
+                `<div class="fav-weather">喜好: ${ani.favWeather}</div>`;
+
+            bettingHTML += `
+                <div class="bet-card" id="bet-${i}" onclick="handleAnimalClick(${i})">
+                    <div style="font-size:20px">${ani.icon} ${ani.name}</div>
+                    ${favInfo}
+                    <div class="odds-text" id="odds-display-${i}">x${ani.odds}</div>
+                </div>
+            `;
+
+            trackHTML += `
+                <div class="lane">
+                    <div class="lane-name">${ani.icon} ${ani.name}</div>
+                    <div class="progress-bar" id="bar-${i}">
+                         <div class="animal-icon">${ani.icon}</div>
+                </div>
+                <div class="status-text" id="status-${i}"></div>
+            </div>`;
+        }
+
+        document.getElementById('betting-area').innerHTML = bettingHTML;
+        document.getElementById('track-area').innerHTML = trackHTML;
+        
+        selectedAnimalIndex = -1;
+        document.getElementById('start-btn').disabled = false;
+        
+        // 如果是 Dev 模式，要更新邊框
+        if(isDevMode) updateDevUI();
+
+        return true;
+    } catch (e) {
+        console.error("Save load failed", e);
+        return false;
+    }
+}
+
+function clearMatchState() {
+    localStorage.removeItem('raceGameMatchState');
+}
+
+// --- 5. 邏輯與控制 ---
+
+function adjustBet(val) {
+    if(isRacing) return;
+    let input = document.getElementById('bet-amount');
+    let current = parseInt(input.value) || 0;
+    let newVal = current + val;
+    if (newVal < currentMinBet) newVal = currentMinBet;
+    input.value = newVal;
+}
+
+function resetBet() {
+    if(isRacing) return;
+    document.getElementById('bet-amount').value = currentMinBet;
+}
+
+function renderVenues() {
+    let html = "";
+    VENUES.forEach((v, idx) => {
+        let isLocked = funds < v.minFunds;
+        let isActive = idx === currentVenueIndex;
+        
+        // 避免重新渲染時切換場地導致存檔不一致，這裡只負責 UI
+        let chaos = Math.floor(v.eventProb * 1000);
+
+        html += `
+            <div class="venue-card ${isLocked ? 'locked' : ''} ${isActive ? 'active' : ''}" 
+                 onclick="${isLocked ? '' : `selectVenue(${idx})`}">
+                ${isLocked ? '<div class="lock-icon">🔒</div>' : '<div class="lock-icon">🌲</div>'}
+                <div class="venue-name">${v.name}</div>
+                <div class="venue-fee">${v.length}m</div>
+                <div class="venue-fee" style="color:${isLocked ? 'red' : 'green'}">${v.desc}</div>
+                <div class="chaos-level">⚡${chaos}</div>
+            </div>
+        `;
+    });
+    document.getElementById('venue-list').innerHTML = html;
+}
+
+function selectVenue(index) {
+    if (isRacing) return;
+    currentVenueIndex = index;
+    
+    let venueData = VENUES[index];
+    currentMinBet = venueData.minFunds > 0 ? venueData.minFunds : 100;
+    
+    let input = document.getElementById('bet-amount');
+    if(parseInt(input.value) < currentMinBet) input.value = currentMinBet;
+    input.min = currentMinBet;
+    
+    document.getElementById('min-bet-display').innerText = `最低下注: $${currentMinBet}`;
+    
+    renderVenues();
+    // 切換場地也算是改變比賽條件，需要更新存檔 (但不重置賠率)
+    // 但因為速度與場地長度有關，切換場地應該要重算速度
+    // 這裡為了簡單，切換場地不強制重置賠率，但要重算 Animal 的 baseSpeed
+    if(animals.length > 0) {
+        animals.forEach(ani => ani.recalcSpeed(venueData.length, currentWeather));
+        saveMatchState(); // 更新存檔中的場地
+    }
+}
+
+// resetMatch 增加參數 isForceNew
+function resetMatch(isForceNew = false) {
+    // 1. 隨機生成新天氣
+    currentWeather = WEATHERS[Math.floor(Math.random() * WEATHERS.length)];
+    document.getElementById('weather-display').innerText = `${currentWeather.name === '晴天' ? '☀️' : currentWeather.name === '雨天' ? '🌧️' : '💨'} 天氣: ${currentWeather.name}`;
+    
+    animals = [];
+    let bettingHTML = "";
+    let trackHTML = "";
+    let venueLen = VENUES[currentVenueIndex].length;
+    
+    for(let i=0; i<8; i++) {
+        let data = ANIMAL_DATA[i];
+        // 產生新動物 (不傳入 savedOdds，就會隨機生成)
+        let ani = new Animal(i, data, venueLen, currentWeather);
+        animals.push(ani);
+
+        let favInfo = ani.isFavWeather ? 
+            `<div class="fav-weather" style="color:red; font-weight:bold;">🔥 天氣優勢！</div>` : 
+            `<div class="fav-weather">喜好: ${ani.favWeather}</div>`;
+
+        bettingHTML += `
+            <div class="bet-card" id="bet-${i}" onclick="handleAnimalClick(${i})">
+                <div style="font-size:20px">${ani.icon} ${ani.name}</div>
+                ${favInfo}
+                <div class="odds-text" id="odds-display-${i}">x${ani.odds}</div>
+            </div>
+        `;
+
+        trackHTML += `
+            <div class="lane">
+                <div class="lane-name">${ani.icon} ${ani.name}</div>
+                <div class="progress-bar" id="bar-${i}">
+                     <div class="animal-icon">${ani.icon}</div>
+                </div>
+                <div class="status-text" id="status-${i}"></div>
+            </div>
+        `;
+    }
+
+    document.getElementById('betting-area').innerHTML = bettingHTML;
+    document.getElementById('track-area').innerHTML = trackHTML;
+    
+    selectedAnimalIndex = -1;
+    document.getElementById('start-btn').disabled = false;
+
+    // 關鍵：產生完畢後立刻存檔
+    saveMatchState();
+    if(isDevMode) updateDevUI();
+}
+
+// 統一處理點擊動物 (包含普通選擇與 Dev 修改)
+function handleAnimalClick(index) {
+    if (isDevMode) {
+        devModifyOdds(index);
+    } else {
+        selectAnimal(index);
+    }
+}
+
+function selectAnimal(index) {
+    if (isRacing) return;
+    document.querySelectorAll('.bet-card').forEach(c => c.classList.remove('selected'));
+    selectedAnimalIndex = index;
+    document.getElementById(`bet-${index}`).classList.add('selected');
+}
+
+function startGame() {
+    let amount = parseInt(document.getElementById('bet-amount').value);
+    
+    if (selectedAnimalIndex === -1) { alert("請先選擇一隻動物！"); return; }
+    if (isNaN(amount)) { alert("請輸入有效金額！"); return; }
+    if (amount < currentMinBet) { alert(`此場地最低下注金額為 $${currentMinBet}！`); return; }
+    if (amount % 100 !== 0) { alert("下注金額必須是 100 的倍數！"); return; }
+    if (amount > funds) { alert("資金不足！"); return; }
+
+    funds -= amount;
+    updateFundsDisplay();
+    isRacing = true;
+    document.getElementById('start-btn').disabled = true;
+    document.querySelectorAll('button').forEach(b => b.disabled = true);
+    document.querySelectorAll('.bet-card').forEach(c => c.classList.add('disabled'));
+    document.querySelectorAll('.venue-card').forEach(c => c.style.pointerEvents = 'none');
+
+    let venue = VENUES[currentVenueIndex];
+    log(`比賽開始！場地：${venue.name}，下注 $${amount}。`);
+
+    let finishedCount = 0;
+    
+    raceInterval = setInterval(() => {
+        let allFinished = true;
+        
+        animals.forEach(ani => {
+            ani.update(venue.length, currentWeather, venue.eventProb);
+            
+            let pct = (ani.position / venue.length) * 100;
+            if(pct > 100) pct = 100;
+            document.getElementById(`bar-${ani.id}`).style.width = `${pct}%`;
+            document.getElementById(`status-${ani.id}`).innerText = ani.status;
+
+            if (!ani.finished) {
+                allFinished = false;
+            } else if (ani.finishOrder === 0) {
+                finishedCount++;
+                ani.finishOrder = finishedCount;
+                log(`第 ${finishedCount} 名: ${ani.name}`);
+            }
+        });
+
+        if (allFinished) {
+            endGame(amount);
+        }
+
+    }, 50); 
+}
+
+function endGame(betAmount) {
+    clearInterval(raceInterval);
+    isRacing = false;
+    document.querySelectorAll('button').forEach(b => b.disabled = false);
+    document.getElementById('start-btn').disabled = true;
+    document.querySelectorAll('.venue-card').forEach(c => c.style.pointerEvents = 'auto');
+    
+    let winner = animals.find(a => a.finishOrder === 1);
+    let playerChoice = animals[selectedAnimalIndex];
+
+    log(`🏆 冠軍是：${winner.name}`);
+
+    if (playerChoice.id === winner.id) {
+        let winAmount = Math.ceil(betAmount * playerChoice.odds);
+        funds += winAmount;
+        log(`恭喜！贏得 $${winAmount} (賠率 ${playerChoice.odds})`);
+        alert(`恭喜！你贏了 $${winAmount}`);
+    } else {
+        log(`可惜！你的 ${playerChoice.name} 獲得第 ${playerChoice.finishOrder} 名。`);
+    }
+
+    updateFundsDisplay();
+    
+    // 關鍵：比賽結束，清除存檔，允許下一場生成新數據
+    clearMatchState();
+    
+    setTimeout(() => {
+        resetMatch(true); // 產生下一場
+    }, 3000);
+}
+
+// --- 6. 開發者模式 ---
+
+function toggleDevPanel() {
+    if (isDevMode) return; // 已經開啟就不用再按
+    let pass = prompt("請輸入開發者代碼:");
+    if (pass === "axin666") {
+        isDevMode = true;
+        document.getElementById('dev-panel').style.display = 'block';
+        document.getElementById('dev-trigger-btn').style.display = 'none';
+        updateDevUI();
+        alert("開發者模式已啟用！");
+        log("[系統] 開發者模式已啟用");
+    } else if (pass !== null) {
+        alert("密碼錯誤");
+    }
+}
+
+function exitDevMode() {
+    isDevMode = false;
+    document.getElementById('dev-panel').style.display = 'none';
+    document.getElementById('dev-trigger-btn').style.display = 'inline-block';
+    updateDevUI(); // 移除邊框
+    log("[系統] 開發者模式已關閉");
+}
+
+function devAddFunds() {
+    funds += 1000;
+    updateFundsDisplay();
+    log("[DEV] 資金 +1000");
+}
+
+function devResetMatch() {
+    if(isRacing) return;
+    clearMatchState();
+    resetMatch(true);
+    log("[DEV] 強制重置比賽");
+}
+
+function devSetWeather(name) {
+    if(isRacing) return;
+    let w = WEATHERS.find(x => x.name === name);
+    if(w) {
+        currentWeather = w;
+        document.getElementById('weather-display').innerText = `${currentWeather.name === '晴天' ? '☀️' : currentWeather.name === '雨天' ? '🌧️' : '💨'} 天氣: ${currentWeather.name}`;
+        // 天氣改變，重新計算動物速度
+        animals.forEach(ani => ani.recalcSpeed(VENUES[currentVenueIndex].length, currentWeather));
+        // 更新 UI 上的天氣優勢顯示
+        updateAnimalCardsUI();
+        saveMatchState();
+        log(`[DEV] 天氣強制改為 ${name}`);
+    }
+}
+
+function devModifyOdds(index) {
+    let ani = animals[index];
+    let newOdds = prompt(`修改 ${ani.name} 的賠率 (目前: ${ani.odds})`, ani.odds);
+    
+    if (newOdds !== null && !isNaN(newOdds) && newOdds > 0) {
+        ani.odds = parseFloat(newOdds).toFixed(2);
+        // 重新計算速度
+        ani.recalcSpeed(VENUES[currentVenueIndex].length, currentWeather);
+        
+        // 更新 UI
+        document.getElementById(`odds-display-${index}`).innerText = `x${ani.odds}`;
+        saveMatchState();
+        log(`[DEV] ${ani.name} 賠率修改為 ${ani.odds}`);
+    }
+}
+
+function updateDevUI() {
+    // 讓動物卡片顯示「可編輯」狀態
+    let cards = document.querySelectorAll('.bet-card');
+    cards.forEach(c => {
+        if (isDevMode) c.classList.add('dev-active-border');
+        else c.classList.remove('dev-active-border');
+    });
+}
+
+function updateAnimalCardsUI() {
+    // 當天氣改變時，重新渲染卡片上的「天氣優勢」文字
+    animals.forEach((ani, i) => {
+        let card = document.getElementById(`bet-${i}`);
+        // 這裡比較暴力直接找 div，實際開發可用更優雅的方式
+        // 為了簡單，我們重新生成那個小區塊
+        let favInfo = ani.isFavWeather ? 
+            `<div class="fav-weather" style="color:red; font-weight:bold;">🔥 天氣優勢！</div>` : 
+            `<div class="fav-weather">喜好: ${ani.favWeather}</div>`;
+        
+        // 取代中間那個 div (第2個 child)
+        card.children[1].outerHTML = favInfo;
+    });
+}
+
+// --- 7. 資金與救濟金系統 ---
+
+function updateFundsDisplay() {
+    document.getElementById('funds').innerText = funds;
+    localStorage.setItem('raceGameFunds', funds);
+    if (reliefNextTime) localStorage.setItem('raceGameReliefTime', reliefNextTime);
+    else localStorage.removeItem('raceGameReliefTime');
+    localStorage.setItem('raceGameReliefCount', reliefCount);
+    renderVenues(); 
+    checkReliefUI(); 
+}
+
+function loadFundsData() {
+    let savedFunds = localStorage.getItem('raceGameFunds');
+    let savedTime = localStorage.getItem('raceGameReliefTime');
+    let savedCount = localStorage.getItem('raceGameReliefCount');
+
+    if (savedFunds !== null) funds = parseInt(savedFunds);
+    if (savedTime !== null) reliefNextTime = parseInt(savedTime);
+    if (savedCount !== null) reliefCount = parseInt(savedCount);
+}
+
+function checkReliefSystem() {
+    if (funds <= 0 && reliefNextTime === null) {
+        reliefNextTime = Date.now() + 30 * 60 * 1000; 
+        reliefCount = 0; 
+        updateFundsDisplay();
+        log("破產！救濟計畫啟動。");
+        return;
+    }
+
+    if (reliefNextTime !== null) {
+        let now = Date.now();
+        while (now >= reliefNextTime && reliefCount < 10) {
+            funds += 100;
+            reliefCount++;
+            reliefNextTime += 30 * 60 * 1000; 
+            log(`收到救濟金 $100！(第 ${reliefCount}/10 次)`);
+        }
+        if (reliefCount >= 10) {
+            reliefNextTime = null; 
+            log("救濟金已全數發放完畢。");
+        }
+        updateFundsDisplay();
+    }
+}
+
+function checkReliefUI() {
+    let panel = document.getElementById('relief-status');
+    let timerDisplay = document.getElementById('timer-display');
+    let countDisplay = document.getElementById('relief-count');
+
+    if (funds <= 0 || (reliefNextTime !== null && reliefCount < 10)) {
+        panel.style.display = 'block';
+        countDisplay.innerText = reliefCount;
+
+        if (reliefNextTime) {
+            let diff = reliefNextTime - Date.now();
+            if (diff > 0) {
+                let mm = Math.floor(diff / 60000);
+                let ss = Math.floor((diff % 60000) / 1000);
+                timerDisplay.innerText = `${mm}分${ss}秒`;
+            } else {
+                timerDisplay.innerText = "發放中...";
+            }
+        }
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+function log(msg) {
+    let logArea = document.getElementById('game-log');
+    let p = document.createElement('div');
+    p.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    logArea.prepend(p);
+}
+</script>
+
+</body>
+</html>
