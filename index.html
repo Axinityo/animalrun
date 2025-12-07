@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>動物大賽跑 - 完美平衡版</title>
+    <title>動物大賽跑</title>
     <style>
         /* --- CSS 變數系統 (主題配色) --- */
         :root {
@@ -207,7 +207,7 @@
 
 <div class="container">
     <button id="theme-toggle-btn" onclick="toggleTheme()">🌓 切換模式</button>
-    <h1>🐎 動物大賽跑 - 完美平衡版 🏆</h1>
+    <h1>🐎 動物大賽跑 - 一無所有或贏下所有 🏆</h1>
     
     <div id="bonus-banner">🎉 主委加碼 超級加倍！本場獲勝獎金 x2 🎉</div>
 
@@ -330,7 +330,7 @@ const ANIMAL_DATA = [
 ];
 
 const VENUES = [
-    { name: "新手草地", length: 2000, minFunds: 0, eventProb: 0.005, desc: "免費" },
+    { name: "新手草地", length: 2000, minFunds: 0, eventProb: 0.005, desc: "無入場門檻" },
     { name: "進階泥地", length: 4000, minFunds: 2000, eventProb: 0.010, desc: "$2000+" },
     { name: "專業沙地", length: 6000, minFunds: 10000, eventProb: 0.015, desc: "$10000+" },
     { name: "大師山路", length: 8000, minFunds: 50000, eventProb: 0.020, desc: "$50000+" },
@@ -1149,3 +1149,4 @@ function devModifyOdds(index) { let ani = animals[index]; let newOdds = prompt(`
 
 </body>
 </html>
+
