@@ -5,163 +5,185 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>動物大賽跑</title>
     <style>
-        /* --- 基礎設定 --- */
-        body { font-family: 'Microsoft JhengHei', sans-serif; background-color: #f0f2f5; padding: 10px; margin: 0; color: #333; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { margin: 10px 0; font-size: 24px; text-align: center; color: #2c3e50; }
-        h3 { margin: 15px 0 10px; font-size: 16px; border-left: 4px solid #007bff; padding-left: 10px; display: flex; justify-content: space-between; align-items: center; }
+        /* --- CSS 變數系統 (主題配色) --- */
+        :root {
+            /* 明亮模式 (預設) */
+            --bg-body: #f0f2f5;
+            --bg-container: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --bg-panel: #e0e7ff;
+            --border-panel: #4f46e5;
+            --bg-card: #ffffff;
+            --border-card: #cccccc;
+            --bg-control: #f8f9fa;
+            --input-bg: #ffffff;
+            --input-border: #ddd;
+            --input-text: #333;
+            --shadow: rgba(0,0,0,0.1);
+            --hover-bg: #f9f9f9;
+            --card-owned-bg: #f0fff4;
+            --card-owned-border: #28a745;
+            --card-selected-bg: #d1fae5;
+            --card-selected-border: #10b981;
+            --venue-active-bg: #fffbeb;
+            --venue-active-border: #f59e0b;
+            --achieve-bg: #eeeeee;
+            --achieve-unlocked-bg: #fffbe6;
+            --danger-zone-bg: #fff5f5;
+        }
 
-        /* --- 主委加碼橫幅 --- */
+        /* 深色模式覆寫 */
+        body.dark-mode {
+            --bg-body: #121212;
+            --bg-container: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #aaaaaa;
+            --bg-panel: #2c2c54;
+            --border-panel: #6366f1;
+            --bg-card: #2d2d2d;
+            --border-card: #444444;
+            --bg-control: #2d2d2d;
+            --input-bg: #383838;
+            --input-border: #555;
+            --input-text: #fff;
+            --shadow: rgba(0,0,0,0.5);
+            --hover-bg: #3a3a3a;
+            --card-owned-bg: #1e3a29;
+            --card-owned-border: #28a745;
+            --card-selected-bg: #1a4731;
+            --card-selected-border: #10b981;
+            --venue-active-bg: #4a3e1b;
+            --venue-active-border: #f59e0b;
+            --achieve-bg: #333333;
+            --achieve-unlocked-bg: #4a4a2e;
+            --danger-zone-bg: #3c2a2a;
+        }
+
+        /* --- 基礎設定 --- */
+        body { font-family: 'Microsoft JhengHei', sans-serif; background-color: var(--bg-body); padding: 10px; margin: 0; color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
+        .container { max-width: 1000px; margin: 0 auto; background: var(--bg-container); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px var(--shadow); position: relative; transition: background-color 0.3s; }
+        h1 { margin: 10px 0; font-size: 24px; text-align: center; color: var(--text-main); }
+        h3 { margin: 15px 0 10px; font-size: 16px; border-left: 4px solid #007bff; padding-left: 10px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
+
+        #theme-toggle-btn {
+            position: absolute; top: 15px; right: 15px;
+            background: none; border: 2px solid var(--text-muted); color: var(--text-main);
+            border-radius: 20px; padding: 5px 12px; font-size: 14px; cursor: pointer; transition: 0.3s; z-index: 10;
+        }
+        #theme-toggle-btn:hover { background: var(--hover-bg); }
+
         #bonus-banner {
             display: none;
             background: linear-gradient(45deg, #ffc107, #ff5722, #ffc107);
-            color: white;
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            border: 2px solid #fff;
-            box-shadow: 0 0 10px #ffc107;
-            animation: glow 1s infinite alternate;
-            text-shadow: 1px 1px 2px black;
+            color: white; text-align: center; font-size: 18px; font-weight: bold;
+            padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 2px solid #fff;
+            box-shadow: 0 0 10px #ffc107; animation: glow 1s infinite alternate; text-shadow: 1px 1px 2px black;
         }
 
-        /* --- 資訊面板 --- */
-        .info-panel { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 15px; padding: 12px; background: #e0e7ff; border-radius: 8px; font-weight: bold; border: 2px solid #4f46e5; align-items: center; }
+        .info-panel { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 15px; padding: 12px; background: var(--bg-panel); border-radius: 8px; font-weight: bold; border: 2px solid var(--border-panel); align-items: center; color: var(--text-main); }
         .funds-group { display: flex; flex-direction: column; }
         .relief-info { color: #d97706; font-size: 12px; margin-top: 5px; animation: pulse 2s infinite; }
         
-        /* --- 導航分頁按鈕 --- */
-        .nav-tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px; overflow-x: auto; }
-        .nav-btn { background: none; border: none; padding: 8px 15px; font-size: 16px; font-weight: bold; color: #666; cursor: pointer; white-space: nowrap; }
+        .nav-tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid var(--border-card); padding-bottom: 5px; overflow-x: auto; }
+        .nav-btn { background: none; border: none; padding: 8px 15px; font-size: 16px; font-weight: bold; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
         .nav-btn.active { color: #007bff; border-bottom: 3px solid #007bff; margin-bottom: -7px; }
         .tab-content { display: none; animation: fadeIn 0.3s; }
         .tab-content.active { display: block; }
 
-        /* --- 統計與商店樣式 --- */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        .stat-card { background: #f8f9fa; border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center; }
+        .stat-card { background: var(--bg-control); border: 1px solid var(--border-card); padding: 10px; border-radius: 8px; text-align: center; }
         .stat-value { font-size: 20px; font-weight: bold; color: #007bff; margin: 5px 0; }
-        .stat-label { font-size: 12px; color: #666; }
+        .stat-label { font-size: 12px; color: var(--text-muted); }
+        
         .list-group { display: flex; flex-direction: column; gap: 5px; }
-        .list-item { display: flex; justify-content: space-between; padding: 8px; background: #fff; border-bottom: 1px solid #eee; font-size: 14px; }
+        .list-item { display: flex; justify-content: space-between; padding: 8px; background: var(--bg-card); border-bottom: 1px solid var(--border-card); font-size: 14px; color: var(--text-main); }
         .list-item:last-child { border-bottom: none; }
-        .bar-container { width: 100px; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; margin-left: 10px; }
+        .bar-container { width: 100px; height: 10px; background: var(--bg-control); border-radius: 5px; overflow: hidden; margin-left: 10px; }
         .bar-fill { height: 100%; background: #28a745; }
 
         .store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-        .item-card { border: 1px solid #ccc; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: 0.2s; background: #fff; position: relative; }
-        .item-card:hover { transform: translateY(-2px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .item-card.owned { border-color: #28a745; background: #f0fff4; }
-        .item-card.selected { border-color: #007bff; background: #e7f1ff; box-shadow: 0 0 0 2px #007bff; }
+        .item-card { border: 1px solid var(--border-card); padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: 0.2s; background: var(--bg-card); position: relative; color: var(--text-main); }
+        .item-card:hover { transform: translateY(-2px); box-shadow: 0 2px 5px var(--shadow); background: var(--hover-bg); }
+        .item-card.owned { border-color: var(--card-owned-border); background: var(--card-owned-bg); }
+        .item-card.selected { border-color: var(--card-selected-border); background: var(--card-selected-bg); box-shadow: 0 0 0 2px var(--card-selected-border); }
         .item-icon { font-size: 24px; display: block; margin-bottom: 5px; }
         .item-name { font-weight: bold; font-size: 14px; }
-        .item-desc { font-size: 11px; color: #666; margin: 5px 0; height: 30px; }
+        .item-desc { font-size: 11px; color: var(--text-muted); margin: 5px 0; height: 30px; }
         .item-price { color: #d97706; font-weight: bold; font-size: 13px; }
         .item-count { position: absolute; top: 5px; right: 5px; background: #333; color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 11px; line-height: 24px; }
         .buy-btn { width: 100%; margin-top: 5px; background: #28a745; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; }
         .buy-btn:hover { background: #218838; }
         .buy-btn:disabled { background: #ccc; cursor: not-allowed; }
 
-        /* --- 成就系統 --- */
         .achieve-list { display: grid; grid-template-columns: 1fr; gap: 8px; max-height: 400px; overflow-y: auto; }
-        .achieve-item { display: flex; align-items: center; padding: 10px; background: #eee; border-radius: 6px; border-left: 4px solid #aaa; }
-        .achieve-item.unlocked { background: #fffbe6; border-left-color: #ffc107; }
+        .achieve-item { display: flex; align-items: center; padding: 10px; background: var(--achieve-bg); border-radius: 6px; border-left: 4px solid #aaa; color: var(--text-main); }
+        .achieve-item.unlocked { background: var(--achieve-unlocked-bg); border-left-color: #ffc107; }
         .achieve-icon { font-size: 24px; margin-right: 10px; opacity: 0.3; }
         .achieve-item.unlocked .achieve-icon { opacity: 1; }
         .achieve-info { flex: 1; }
         .achieve-title { font-weight: bold; font-size: 14px; }
-        .achieve-desc { font-size: 11px; color: #666; }
+        .achieve-desc { font-size: 11px; color: var(--text-muted); }
 
-        /* --- 賽道與遊戲 --- */
         .venue-selection { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
-        .venue-card { background: #fff; border: 2px solid #ccc; padding: 8px; border-radius: 8px; text-align: center; cursor: pointer; min-width: 100px; flex-shrink: 0; }
-        .venue-card.active { border-color: #f59e0b; background: #fffbeb; }
+        .venue-card { background: var(--bg-card); border: 2px solid var(--border-card); padding: 8px; border-radius: 8px; text-align: center; cursor: pointer; min-width: 100px; flex-shrink: 0; color: var(--text-main); }
+        .venue-card.active { border-color: var(--venue-active-border); background: var(--venue-active-bg); }
         .venue-card.locked { opacity: 0.6; cursor: not-allowed; }
-        .venue-fee { font-size: 12px; color: #666; margin-top: 2px; }
+        .venue-fee { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
-        .track-area { 
-            margin: 15px 0; 
-            border: 2px solid #333; 
-            padding: 5px; 
-            background: #555; 
-            border-radius: 5px; 
-            position: relative; 
-            height: 380px; 
-            overflow: hidden;
-        }
-        
-        .lane { 
-            position: absolute; 
-            left: 5px; 
-            right: 5px;
-            height: 36px;
-            background: #333; 
-            padding: 2px; 
-            border-radius: 4px; 
-            transition: top 0.5s ease-in-out; 
-            z-index: 1;
-        }
-        
-        .lane-rank-indicator {
-            position: absolute;
-            left: -35px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #fff;
-            font-weight: bold;
-            font-size: 12px;
-            width: 30px;
-            text-align: right;
-            display: none;
-        }
-
+        .track-area { margin: 15px 0; border: 2px solid #333; padding: 5px; background: #555; border-radius: 5px; position: relative; height: 380px; overflow: hidden; }
+        .lane { position: absolute; left: 5px; right: 5px; height: 36px; background: #333; padding: 2px; border-radius: 4px; transition: top 0.5s ease-in-out; z-index: 1; }
+        .lane-rank-indicator { position: absolute; left: -35px; top: 50%; transform: translateY(-50%); color: var(--text-main); font-weight: bold; font-size: 12px; width: 30px; text-align: right; display: none; }
         .lane-name { color: white; position: absolute; left: 5px; top: 50%; transform: translateY(-50%); z-index: 2; font-size: 12px; text-shadow: 1px 1px 2px black; }
         .progress-bar { height: 100%; background: linear-gradient(90deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); width: 0%; border-radius: 4px; transition: width 0.05s linear; position: relative; }
         .animal-icon { position: absolute; right: -12px; top: -6px; font-size: 22px; transition: right 0.05s linear; }
         .status-text { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); color: yellow; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px black;}
 
         .betting-area { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
-        .bet-card { border: 1px solid #ccc; padding: 8px; border-radius: 5px; text-align: center; cursor: pointer; position: relative; }
-        .bet-card.selected { background: #d1fae5; border-color: #10b981; border-width: 2px; }
+        .bet-card { border: 1px solid var(--border-card); padding: 8px; border-radius: 5px; text-align: center; cursor: pointer; position: relative; background: var(--bg-card); color: var(--text-main); }
+        .bet-card.selected { background: var(--card-selected-bg); border-color: var(--card-selected-border); border-width: 2px; }
         .bet-card.disabled { opacity: 0.6; cursor: not-allowed; }
-        .odds-text { color:red; font-weight:bold; font-size:16px; }
-        .fav-weather { font-size: 11px; color: #555; margin-top: 2px; background: #eee; border-radius: 4px; padding: 2px;}
+        .odds-text { color: #dc3545; font-weight: bold; font-size:16px; } 
+        .fav-weather { font-size: 11px; color: var(--text-muted); margin-top: 2px; background: var(--bg-control); border-radius: 4px; padding: 2px;}
 
-        /* --- 控制區 (重構) --- */
-        .controls { text-align: center; margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; }
-        .bet-control-container { display: flex; flex-direction: column; gap: 8px; }
+        /* --- 控制區 & 按鈕顏色強制修正 --- */
+        .controls { text-align: center; margin-top: 15px; background: var(--bg-control); padding: 15px; border-radius: 8px; }
+        .bet-input-group { margin-bottom: 10px; display: flex; justify-content: center; align-items: center; gap: 4px; flex-wrap: wrap; }
         
-        .bet-row { display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; }
-        
-        button { padding: 8px 10px; font-size: 14px; cursor: pointer; border: none; border-radius: 5px; touch-action: manipulation; color: white; font-weight: bold; }
+        button { padding: 8px 10px; font-size: 14px; cursor: pointer; border: none; border-radius: 5px; touch-action: manipulation; font-weight: bold; transition: 0.2s; }
         button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        /* 顏色主題 */
-        .btn-minus { background: #dc3545; } .btn-minus:hover { background: #b02a37; }
-        .btn-plus { background: #17a2b8; } .btn-plus:hover { background: #138496; }
-        .btn-plus-lg { background: #6610f2; } .btn-plus-lg:hover { background: #520dc2; } /* 10k, 50k */
-        .btn-reset { background: #6c757d; }
-        .btn-allin { background: linear-gradient(45deg, #ffc107, #fd7e14); color: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        /* 強制按鈕顏色，不隨主題改變，確保可讀性 */
+        .btn-minus { background-color: #dc3545 !important; color: #ffffff !important; }
+        .btn-minus:hover { background-color: #bb2d3b !important; }
+
+        .btn-plus { background-color: #28a745 !important; color: #ffffff !important; }
+        .btn-plus:hover { background-color: #218838 !important; }
+
+        .btn-plus-lg { background-color: #198754 !important; color: #ffffff !important; } /* 深綠 */
+        .btn-plus-lg:hover { background-color: #157347 !important; }
+
+        .btn-reset { background-color: #6c757d !important; color: #ffffff !important; }
+        .btn-reset:hover { background-color: #5c636a !important; }
+
+        .btn-allin { background: linear-gradient(45deg, #ffc107, #fd7e14) !important; color: #000 !important; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .btn-allin:hover { filter: brightness(1.1); }
 
-        .start-btn { background: #007bff; width: 100%; max-width: 300px; font-size: 20px; padding: 12px; margin-top: 10px; }
-        .start-btn:disabled { background: #ccc; }
-        .instant-end-btn { background: #6f42c1; width: 100%; margin-top: 10px; padding: 12px; font-weight: bold; display: none; animation: popIn 0.3s; }
+        .start-btn { background-color: #007bff !important; color: #ffffff !important; width: 200px; font-size: 18px; font-weight: bold; }
+        .start-btn:disabled { background-color: #ccc !important; }
+        
+        .instant-end-btn { background-color: #6f42c1 !important; color: #ffffff !important; width: 100%; margin-top: 10px; font-weight: bold; display: none; animation: popIn 0.3s; }
 
-        /* 輸入框 */
+        /* 危險區域 */
+        .danger-zone { margin-top: 30px; padding: 15px; border: 2px dashed #dc3545; border-radius: 8px; text-align: center; background: var(--danger-zone-bg); }
+        .hard-reset-btn { background-color: #dc3545 !important; color: #ffffff !important; font-weight: bold; padding: 10px 20px; }
+        .hard-reset-btn:hover { background-color: #c82333 !important; }
+
         input[type="number"] { 
-            padding: 8px; font-size: 20px; width: 140px; text-align: center; 
-            border: 2px solid #ddd; border-radius: 4px; font-weight: bold; color: #333;
+            padding: 8px; font-size: 16px; width: 100px; text-align: center; 
+            border: 2px solid var(--input-border); border-radius: 4px; 
+            background: var(--input-bg); color: var(--input-text);
         }
-
-        /* 重置按鈕樣式 */
-        .danger-zone { margin-top: 30px; padding: 15px; border: 2px dashed #dc3545; border-radius: 8px; text-align: center; background: #fff5f5; }
-        .hard-reset-btn { background: #dc3545; font-weight: bold; padding: 10px 20px; }
-        .hard-reset-btn:hover { background: #c82333; }
-
         .log-area { height: 120px; overflow-y: auto; background: #222; color: #0f0; padding: 8px; margin-top: 15px; font-family: monospace; border-radius: 5px; font-size: 11px; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -169,15 +191,12 @@
         @keyframes glow { from { box-shadow: 0 0 5px #ffc107; } to { box-shadow: 0 0 20px #ff5722; } }
         @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
 
-        /* --- RWD --- */
         @media (max-width: 768px) {
             .betting-area { grid-template-columns: repeat(2, 1fr); }
             .store-grid { grid-template-columns: repeat(2, 1fr); }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .info-panel { flex-direction: column; align-items: flex-start; }
-            .weather-info { width: 100%; text-align: right; border-top: 1px solid #ccc; padding-top: 5px; margin-top: 5px; }
-            
-            /* 手機版按鈕微調 */
+            .weather-info { width: 100%; text-align: right; border-top: 1px solid var(--border-card); padding-top: 5px; margin-top: 5px; }
             .bet-row button { padding: 8px 6px; font-size: 12px; min-width: 45px; }
         }
 
@@ -189,6 +208,7 @@
 <body>
 
 <div class="container">
+    <button id="theme-toggle-btn" onclick="toggleTheme()">🌓 切換模式</button>
     <h1>🐎 動物大賽跑 - 一無所有或贏下所有 🏆</h1>
     
     <div id="bonus-banner">🎉 主委加碼 超級加倍！本場獲勝獎金 x2 🎉</div>
@@ -215,7 +235,7 @@
         <div class="venue-selection" id="venue-list"></div>
 
         <h3>2. 選擇選手 (與使用道具)</h3>
-        <div style="margin-bottom: 10px; font-size: 14px; color: #555;">
+        <div style="margin-bottom: 10px; font-size: 14px; color: var(--text-muted);">
             當前使用道具: <span id="active-item-display" style="color: #007bff; font-weight: bold;">無</span>
         </div>
         <div class="betting-area" id="betting-area"></div>
@@ -244,9 +264,8 @@
                     <button class="btn-plus-lg" onclick="adjustBet(50000)">+50k</button>
                 </div>
             </div>
-
-            <span id="min-bet-display" style="font-size:12px; color:#666; margin-top:5px; display:block;">最低下注: $100</span>
             
+            <span id="min-bet-display" style="font-size:12px; color:var(--text-muted); display:block; margin-top:5px;">最低下注: $100</span>
             <button id="start-btn" class="start-btn" onclick="startGame()">🏁 開始比賽</button>
             <button id="instant-end-btn" class="instant-end-btn" onclick="instantSettle()">⚡ 立即結算</button>
         </div>
@@ -256,7 +275,7 @@
     </div>
 
     <div id="tab-store" class="tab-content">
-        <div style="margin-bottom:10px; font-size:14px;">每種道具最多持有 5 個。</div>
+        <div style="margin-bottom:10px; font-size:14px; color:var(--text-muted);">每種道具最多持有 5 個。</div>
         <div class="store-grid" id="store-list"></div>
     </div>
 
@@ -270,7 +289,7 @@
         <div class="danger-zone">
             <div style="color:#dc3545; font-weight:bold; margin-bottom:10px;">⚠️ 危險區域</div>
             <button class="hard-reset-btn" onclick="hardResetGame()">🗑️ 重置所有遊戲資料</button>
-            <div style="font-size:12px; color:#666; margin-top:5px;">這將刪除資金、成就與購買紀錄</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:5px;">這將刪除資金、成就與購買紀錄</div>
         </div>
     </div>
 
@@ -288,6 +307,22 @@
 </div>
 
 <script>
+// --- 0. 主題控制 ---
+function loadTheme() {
+    const savedTheme = localStorage.getItem('raceGameTheme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('theme-toggle-btn').innerText = "☀️ 明亮模式";
+    }
+}
+
+function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('raceGameTheme', isDark ? 'dark' : 'light');
+    document.getElementById('theme-toggle-btn').innerText = isDark ? "☀️ 明亮模式" : "🌓 深色模式";
+}
+
 // --- 1. 遊戲資料設定 ---
 const ANIMAL_DATA = [
     { name: "閃電兔", icon: "🐇", fav: "晴天" },
@@ -406,6 +441,7 @@ let playerStats = {
 
 // --- 3. 初始化 ---
 window.onload = function() {
+    loadTheme();
     loadGameData();
     checkDailyReset(); 
     renderStore();
@@ -420,6 +456,7 @@ window.onload = function() {
         log("恢復未完成的賽事。");
         requestAnimationFrame(() => updateRankings(true));
     }
+    // 每秒檢查一次救濟金
     setInterval(checkReliefSystem, 1000); 
 };
 
@@ -598,7 +635,7 @@ function updateRankings(forceReset = false) {
             let rankIndicator = laneEl.querySelector('.lane-rank-indicator');
             rankIndicator.style.display = 'block';
             rankIndicator.innerText = `#${rankIndex + 1}`;
-            rankIndicator.style.color = rankIndex === 0 ? '#ffd700' : (rankIndex === 1 ? '#c0c0c0' : (rankIndex === 2 ? '#cd7f32' : '#fff'));
+            rankIndicator.style.color = rankIndex === 0 ? '#ffd700' : (rankIndex === 1 ? '#c0c0c0' : (rankIndex === 2 ? '#cd7f32' : (document.body.classList.contains('dark-mode') ? '#fff' : '#000')));
         }
     });
 }
@@ -679,7 +716,6 @@ function endGame(betAmount) {
         if (playerChoice.odds < 2.0) playerStats.safeBetWins = (playerStats.safeBetWins || 0) + 1;
         if (playerChoice.odds > 5.0) playerStats.longShotWins = (playerStats.longShotWins || 0) + 1;
 
-        // 成就統計更新
         playerStats.venueWins[currentVenueIndex] = (playerStats.venueWins[currentVenueIndex] || 0) + 1;
         if (currentVenueIndex === 4) playerStats.legendaryWins++; 
         if (betAmount === currentMinBet) playerStats.minBetWins = (playerStats.minBetWins || 0) + 1;
@@ -825,7 +861,7 @@ function renderStore() {
     document.getElementById('store-list').innerHTML = html;
 }
 
-// --- 輔助功能 ---
+// --- 其餘輔助 ---
 function checkAchievements() {
     let newUnlock = false;
     ACHIEVEMENTS.forEach(ach => {
@@ -860,6 +896,9 @@ function setUIState(state) {
     document.querySelectorAll('.buy-btn').forEach(b => b.disabled = disabled);
     document.querySelectorAll('.venue-card').forEach(c => c.style.pointerEvents = disabled ? 'none' : 'auto');
     document.querySelectorAll('.bet-card').forEach(c => c.classList.toggle('disabled', disabled));
+    // 禁用所有加減按鈕
+    document.querySelectorAll('.btn-minus, .btn-plus, .btn-plus-lg, .btn-reset, .btn-allin').forEach(b => b.disabled = disabled);
+    
     if(!disabled) document.getElementById('instant-end-btn').style.display = 'none';
 }
 
@@ -922,11 +961,8 @@ function resetBet() { if(!isRacing) document.getElementById('bet-amount').value 
 // 新增 ALL IN 功能
 function setAllIn() {
     if (isRacing) return;
-    // 無條件捨去至 100 的倍數
     let maxBet = Math.floor(funds / 100) * 100;
-    // 如果最大下注還小於最低門檻，就保持最低門檻 (雖然可能資金不足)
     if (maxBet < currentMinBet) maxBet = currentMinBet;
-    
     document.getElementById('bet-amount').value = maxBet;
 }
 
@@ -942,24 +978,9 @@ function loadGameData() {
     funds = parseInt(localStorage.getItem('raceGameFunds')) || 1000;
     playerInventory = JSON.parse(localStorage.getItem('raceGameInventory')) || {};
     let stats = JSON.parse(localStorage.getItem('raceGameStats'));
-    if (stats) {
-        playerStats = stats;
-        // 防呆補齊新屬性
-        if(!playerStats.venueWins) playerStats.venueWins = [0,0,0,0,0];
-        if(!playerStats.totalItemsBought) playerStats.totalItemsBought = 0;
-        if(!playerStats.maxFundsReached) playerStats.maxFundsReached = 0;
-        if(!playerStats.secondPlaceCount) playerStats.secondPlaceCount = 0;
-        if(!playerStats.minBetWins) playerStats.minBetWins = 0;
-        if(!playerStats.legendaryWins) playerStats.legendaryWins = 0;
-        if(!playerStats.turtleRainWins) playerStats.turtleRainWins = 0;
-        if(!playerStats.cheetahWindWins) playerStats.cheetahWindWins = 0;
-        if(!playerStats.miracleWins) playerStats.miracleWins = 0;
-        if(!playerStats.upsetLosses) playerStats.upsetLosses = 0;
-    }
-    
+    if (stats) playerStats = stats;
     let savedRelief = localStorage.getItem('raceGameReliefTime');
     if(savedRelief && savedRelief !== "null") reliefNextTime = parseInt(savedRelief);
-    
     let savedAcc = localStorage.getItem('raceGameReliefAccumulated');
     if(savedAcc) reliefAccumulated = parseInt(savedAcc);
 }
@@ -976,7 +997,6 @@ function loadMatchState() {
         todayMatchCount = state.matchCount || 0;
         isBonusRound = state.isBonus || false; 
         document.getElementById('bonus-banner').style.display = isBonusRound ? 'block' : 'none';
-        
         selectVenue(state.venueIdx);
         currentWeather = WEATHERS[state.weatherIdx];
         document.getElementById('weather-display').innerText = `${currentWeather.name === '晴天' ? '☀️' : currentWeather.name === '雨天' ? '🌧️' : '💨'} 天氣: ${currentWeather.name}`;
@@ -989,14 +1009,7 @@ function loadMatchState() {
             animals.push(ani);
             let favInfo = ani.isFavWeather ? `<div class="fav-weather" style="color:red; font-weight:bold;">🔥 天氣優勢！</div>` : `<div class="fav-weather">喜好: ${ani.favWeather}</div>`;
             bettingHTML += `<div class="bet-card" id="bet-${i}" onclick="handleAnimalClick(${i})"><div style="font-size:20px">${ani.icon} ${ani.name}</div>${favInfo}<div class="odds-text" id="odds-display-${i}">x${ani.odds}</div></div>`;
-            
-            trackHTML += `
-            <div class="lane" id="lane-${i}" style="top: ${i * 45 + 5}px;">
-                <div class="lane-rank-indicator">#${i+1}</div>
-                <div class="lane-name">${ani.icon} ${ani.name}</div>
-                <div class="progress-bar" id="bar-${i}"><div class="animal-icon">${ani.icon}</div></div>
-                <div class="status-text" id="status-${i}"></div>
-            </div>`;
+            trackHTML += `<div class="lane" id="lane-${i}" style="top: ${i * 45 + 5}px;"><div class="lane-rank-indicator">#${i+1}</div><div class="lane-name">${ani.icon} ${ani.name}</div><div class="progress-bar" id="bar-${i}"><div class="animal-icon">${ani.icon}</div></div><div class="status-text" id="status-${i}"></div></div>`;
         }
         document.getElementById('betting-area').innerHTML = bettingHTML;
         document.getElementById('track-area').innerHTML = trackHTML;
@@ -1030,22 +1043,18 @@ function checkReliefSystem() {
     if (now >= reliefNextTime) {
         let timePassed = now - (reliefNextTime - RELIEF_INTERVAL);
         let cycles = Math.floor(timePassed / RELIEF_INTERVAL);
-        
         if (cycles > 0) {
             let basePayout = cycles * 100;
             let remainingQuota = RELIEF_MAX_ACCUMULATION - reliefAccumulated;
             let payout = (basePayout > remainingQuota) ? remainingQuota : basePayout;
-
             if (payout > 0) {
                 funds += payout;
                 reliefAccumulated += payout;
                 playerStats.totalReliefAmount += payout;
                 playerStats.totalRelief += cycles; 
-                
                 log(`🚑 收到救濟金 $${payout} (累積: $${reliefAccumulated}/$1000)`);
                 checkAchievements();
             }
-
             reliefNextTime += cycles * RELIEF_INTERVAL;
             updateFundsDisplay();
         }
@@ -1065,11 +1074,9 @@ function updateReliefUI() {
     let panel = document.getElementById('relief-status');
     let timerDisplay = document.getElementById('timer-display');
     let accDisplay = document.getElementById('accumulated-display');
-    
     if (reliefNextTime !== null) {
         panel.style.display = 'block';
         accDisplay.innerText = `$${reliefAccumulated}`;
-        
         let diff = reliefNextTime - Date.now();
         if (diff > 0) {
             let mm = Math.floor(diff / 60000);
